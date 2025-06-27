@@ -62,7 +62,7 @@ This document provides a comprehensive overview of the AI Tax Return Agent proto
 - **Validation Engine**: Comprehensive input validation
 - **Calculation Engine**: Progressive tax calculation logic
 - **Form Generator**: PDF-based tax form creation
-- **AI Integration**: Optional OpenAI-powered tax advice
+- **AI Integration**: OpenAI-powered tax advice
 
 ### 3. Template Layer (`templates/`)
 
