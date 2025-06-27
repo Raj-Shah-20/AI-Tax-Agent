@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tax Calculation Results - AI Tax Agent</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 20px 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .result-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 5px solid #007bff;
+        }
+        .result-card.highlight {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        }
+        .result-card.warning {
+            border-left-color: #ffc107;
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        }
+        .result-card.refund {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #d4f6d4, #c3e6cb);
+        }
+        .result-card.owed {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        }
+        .result-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .result-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #212529;
+        }
+        .result-subtitle {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .summary-section {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        .summary-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .summary-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 10px -15px -15px -15px;
+            padding: 15px;
+            border-radius: 0 0 12px 12px;
+        }
+        .summary-section.refund .summary-row:last-child {
+            background-color: #e8f5e8;
+        }
+        .summary-section.owed .summary-row:last-child {
+            background-color: #ffe6e6;
+        }
+        .summary-label {
+            color: #495057;
+        }
+        .summary-value {
+            color: #212529;
+            font-weight: 500;
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            min-width: 200px;
+            white-space: nowrap;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .btn:hover, .btn:focus {
+            transform: translateY(-2px);
+            outline: none;
+        }
+        .btn:active {
+            transform: translateY(0);
+            transition: all 0.1s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background: linear-gradient(135deg, #0056b3, #003d82);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+            color: white;
+            text-decoration: none;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+        .btn-success:hover, .btn-success:focus {
+            background: linear-gradient(135deg, #1e7e34, #155724);
+            box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+            color: white;
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #545b62);
+            color: white;
+        }
+        .btn-secondary:hover, .btn-secondary:focus {
+            background: linear-gradient(135deg, #545b62, #3d4246);
+            box-shadow: 0 5px 15px rgba(108,117,125,0.3);
+            color: white;
+        }
+        .action-form {
+            display: inline-block;
+            margin: 0;
+        }
+        .disclaimer {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .disclaimer h4 {
+            color: #856404;
+            margin-top: 0;
+        }
+        .disclaimer p {
+            color: #856404;
+            margin-bottom: 0;
+        }
+        .calculation-date {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        .official-notice {
+            background-color: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .official-notice h5 {
+            color: #1976d2;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .official-notice p {
+            color: #1976d2;
+            margin-bottom: 0;
+            font-size: 0.9em;
+        }
+        
+        .tip-high-priority {
+            border-left: 4px solid #007bff;
+        }
+        .tip-medium-priority {
+            border-left: 4px solid #6c757d;
+        }
+        
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+                margin: 10px 0;
+            }
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .result-card {
+                padding: 20px;
+            }
+            .result-value {
+                font-size: 1.8em;
+            }
+            .summary-section {
+                padding: 20px;
+            }
+            .actions {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .btn {
+                width: 100%;
+                min-width: auto;
+                padding: 18px 20px;
+                font-size: 18px;
+                box-sizing: border-box;
+            }
+            .action-form {
+                width: 100%;
+                display: block;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .result-card {
+                padding: 15px;
+            }
+            .result-title {
+                font-size: 1em;
+            }
+            .result-value {
+                font-size: 1.6em;
+            }
+            .summary-section {
+                padding: 15px;
+            }
+            .summary-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .summary-label, .summary-value {
+                width: 100%;
+            }
+            .btn {
+                padding: 16px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Your Tax Calculation Results</h1>
+            <div class="calculation-date">Calculated on {{ calculation_date }}</div>
+        </div>
+
+
+
+        <div class="results-grid">
+            <div class="result-card">
+                <div class="result-title">💰 Total Tax Owed</div>
+                <div class="result-value">${{ "{:,}".format(tax_owed|int) }}</div>
+                <div class="result-subtitle">Effective Rate: {{ effective_rate }}%</div>
+            </div>
+            
+            <div class="result-card">
+                <div class="result-title">🏦 Tax Withheld</div>
+                <div class="result-value">${{ "{:,}".format(withheld|int) }}</div>
+                <div class="result-subtitle">From paychecks (W-2)</div>
+            </div>
+            
+            <div class="result-card {{ 'refund' if is_refund else 'owed' }}">
+                <div class="result-title">
+                    {% if is_refund %}
+                        🎉 Your Refund
+                    {% else %}
+                        💸 Additional Tax Owed
+                    {% endif %}
+                </div>
+                <div class="result-value">${{ "{:,}".format(net_payment|int) }}</div>
+                <div class="result-subtitle">
+                    {% if is_refund %}
+                        Money coming back to you!
+                    {% else %}
+                        Additional payment required
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="result-card warning">
+                <div class="result-title">📊 Marginal Tax Rate</div>
+                <div class="result-value">{{ marginal_rate }}%</div>
+                <div class="result-subtitle">Rate on next dollar earned</div>
+            </div>
+        </div>
+
+        <div class="summary-section {{ 'refund' if is_refund else 'owed' }}">
+            <div class="summary-title">📋 Tax Calculation Summary</div>
+            
+            <div class="summary-row">
+                <span class="summary-label">Filing Status:</span>
+                <span class="summary-value">{{ status.title() }}</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="summary-label">Annual Income:</span>
+                <span class="summary-value">${{ "{:,}".format(income|int) }}</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="summary-label">Deductions Used:</span>
+                <span class="summary-value">${{ "{:,}".format(deductions|int) }}</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="summary-label">Taxable Income:</span>
+                <span class="summary-value">${{ "{:,}".format(taxable_income|int) }}</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="summary-label">Total Tax:</span>
+                <span class="summary-value">${{ "{:,}".format(tax_owed|int) }}</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="summary-label">Federal Tax Withheld:</span>
+                <span class="summary-value">${{ "{:,}".format(withheld|int) }}</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="summary-label">
+                    {% if is_refund %}
+                        🎉 Your Refund:
+                    {% else %}
+                        💸 Additional Tax Owed:
+                    {% endif %}
+                </span>
+                <span class="summary-value">${{ "{:,}".format(net_payment|int) }}</span>
+            </div>
+        </div>
+
+        <!-- Smart Deduction Analysis Section -->
+        <div class="summary-section">
+            <div class="summary-title">🎯 Smart Deduction Analysis</div>
+            
+            <div style="margin-bottom: 20px;">
+                {% for rec in deduction_analysis.recommendations %}
+                    <div class="result-card {{ 'highlight' if rec.impact == 'high' else 'warning' if rec.impact == 'medium' else '' }}" style="margin-bottom: 15px;">
+                        <div class="result-title">{{ rec.title }}</div>
+                        <div style="font-size: 1em; color: #495057; margin-top: 8px;">{{ rec.description }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="summary-row">
+                <span class="summary-label">Standard Deduction ({{ status.title() }}):</span>
+                <span class="summary-value">${{ "{:,}".format(deduction_analysis.standard_deduction|int) }}</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="summary-label">Your Itemized Deductions:</span>
+                <span class="summary-value">${{ "{:,}".format(deduction_analysis.itemized_deductions|int) }}</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="summary-label">Recommended Strategy:</span>
+                <span class="summary-value">{{ deduction_analysis.recommended_strategy.title() }} Deduction</span>
+            </div>
+            
+            {% if deduction_analysis.tax_savings_from_itemizing > 0 %}
+            <div class="summary-row">
+                <span class="summary-label">Tax Savings from Itemizing:</span>
+                <span class="summary-value">${{ "{:,}".format(deduction_analysis.tax_savings_from_itemizing|int) }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Missed Opportunities Section -->
+        {% if deduction_analysis.missed_opportunities %}
+        <div class="summary-section" style="background-color: #fff3cd; border: 1px solid #ffeaa7;">
+            <div class="summary-title" style="color: #856404;">
+                {% if deduction_analysis.ai_advice %}
+                    🤖 AI-Detected Deduction Opportunities
+                {% else %}
+                    💡 Potential Deduction Opportunities
+                {% endif %}
+            </div>
+            
+            {% for opportunity in deduction_analysis.missed_opportunities %}
+                <div style="margin-bottom: 20px; padding: 15px; background-color: white; border-radius: 8px; border-left: 4px solid #ffc107;">
+                    <h5 style="margin-top: 0; color: #856404;">{{ opportunity.title }}</h5>
+                    <p style="margin-bottom: 10px; color: #856404;">{{ opportunity.description }}</p>
+                    {% if opportunity.potential_savings and opportunity.potential_savings != 'Varies' and opportunity.potential_savings != 'AI Estimated' %}
+                        <p style="margin-bottom: 10px; color: #856404; font-weight: 600;">
+                            Potential Tax Savings: 
+                            {% if opportunity.potential_savings is number %}
+                                ${{ "{:,}".format(opportunity.potential_savings|int) }}
+                            {% else %}
+                                {{ opportunity.potential_savings }}
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                    {% if opportunity.tips %}
+                        <ul style="margin: 0; color: #856404;">
+                            {% for tip in opportunity.tips %}
+                                <li>{{ tip }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            {% if deduction_analysis.ai_advice %}
+                <div style="margin-top: 15px; padding: 10px; background-color: #f0f8ff; border-radius: 6px; font-size: 0.85em; color: #4a90e2; border-left: 4px solid #4a90e2;">
+                    <strong>🤖 AI-Generated Analysis:</strong> These opportunities were identified by our AI tax advisor based on your specific profile.
+                </div>
+            {% else %}
+                <div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 6px; font-size: 0.85em; color: #6c757d;">
+                    <strong>💡 Traditional Analysis:</strong> These are common deduction opportunities. Set up AI features for personalized recommendations.
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Optimization Tips Section -->
+        {% if deduction_analysis.optimization_tips %}
+        <div class="summary-section" style="background-color: #e3f2fd; border: 1px solid #2196f3;">
+            <div class="summary-title" style="color: #1976d2;">
+                {% if deduction_analysis.ai_advice %}
+                    🤖 AI-Powered Optimization Strategies
+                {% else %}
+                    🚀 Deduction Optimization Tips
+                {% endif %}
+            </div>
+            
+            {% for tip in deduction_analysis.optimization_tips %}
+                <div style="margin-bottom: 15px; padding: 12px; background-color: white; border-radius: 8px;" class="{{ 'tip-high-priority' if tip.priority == 'high' else 'tip-medium-priority' }}">
+                    <h6 style="margin-top: 0; color: #1976d2;">{{ tip.title }}</h6>
+                    <p style="margin: 0; color: #1976d2;">{{ tip.description }}</p>
+                </div>
+            {% endfor %}
+            
+            {% if deduction_analysis.ai_advice %}
+                <div style="margin-top: 15px; padding: 10px; background-color: #f0f8ff; border-radius: 6px; font-size: 0.85em; color: #4a90e2; border-left: 4px solid #4a90e2;">
+                    <strong>🤖 AI-Powered Tips:</strong> These optimization strategies were generated by AI based on your tax situation.
+                </div>
+            {% else %}
+                <div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 6px; font-size: 0.85em; color: #6c757d;">
+                    <strong>🚀 Standard Tips:</strong> These are general optimization strategies. Enable AI for personalized advice.
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- AI-Powered Tax Advice Section -->
+        {% if deduction_analysis.ai_advice %}
+        <div class="summary-section" style="background-color: #f0f8ff; border: 2px solid #4a90e2;">
+            <div class="summary-title" style="color: #2c5aa0;">🤖 AI Tax Advisor Insights</div>
+            <div style="padding: 20px; background-color: white; border-radius: 8px; border-left: 4px solid #4a90e2;">
+                <h6 style="margin-top: 0; color: #2c5aa0; display: flex; align-items: center;">
+                    <span style="margin-right: 8px;">🧠</span> Personalized AI Analysis
+                </h6>
+                <p style="margin: 0; color: #2c5aa0; line-height: 1.6;">{{ deduction_analysis.ai_advice }}</p>
+                <div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 6px; font-size: 0.85em; color: #6c757d;">
+                    <strong>Note:</strong> This AI analysis is generated based on your tax profile. Always consult a qualified tax professional for personalized advice.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="actions">
+            <form action="/generate_form" method="post" class="action-form">
+                <input type="hidden" name="income" value="{{ income }}">
+                <input type="hidden" name="deductions" value="{{ deductions }}">
+                <input type="hidden" name="status" value="{{ status }}">
+                <input type="hidden" name="tax_owed" value="{{ tax_owed }}">
+                <input type="hidden" name="after_tax_income" value="{{ after_tax_income }}">
+                <input type="hidden" name="taxable_income" value="{{ taxable_income }}">
+                <input type="hidden" name="withheld" value="{{ withheld }}">
+                <input type="hidden" name="is_refund" value="{{ is_refund }}">
+                <input type="hidden" name="net_payment" value="{{ net_payment }}">
+                <button type="submit" class="btn btn-success">📄 Download Tax Form 1040 (PDF)</button>
+            </form>
+            
+            <a href="/" class="btn btn-primary">✨ Calculate Another Return</a>
+        </div>
+
+        <div class="disclaimer">
+            <h4>⚠️ Important Disclaimer</h4>
+            <p><strong>This is a prototype for demonstration purposes only.</strong><br>
+            For actual tax filing, please consult a qualified tax professional or use official IRS-approved software. 
+            This calculator uses official 2025 tax brackets (IRS IR-2024-273) but may not account for all tax situations, credits, or deductions.</p>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactivity
+        window.addEventListener('load', function() {
+            // Animate result cards
+            const cards = document.querySelectorAll('.result-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.5s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>
