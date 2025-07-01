@@ -27,7 +27,7 @@ This project is a comprehensive prototype of an AI-powered tax return preparatio
 - **Frontend**: HTML5, CSS3, JavaScript
 - **Templating**: Jinja2 template engine
 - **PDF Generation**: ReportLab for tax form creation
-- **AI Integration**: OpenAI GPT-3.5-turbo for intelligent tax advice (optional)
+- **AI Integration**: OpenAI GPT-3.5-turbo for intelligent tax advice
 
 ## 📦 Installation & Setup
 
