@@ -1,0 +1,12 @@
+Flask==2.3.3
+Werkzeug==2.3.7
+reportlab==4.4.2
+openai==1.93.0
+python-dotenv==1.1.1
+
+# Development dependencies (optional)
+# pytest==7.4.2
+# pytest-flask==1.2.0
+
+# Production dependencies (recommended)
+# gunicorn==21.2.0 

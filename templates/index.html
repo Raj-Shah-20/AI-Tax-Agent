@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Tax Return Agent</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 20px 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 1.1em;
+        }
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        .error-input {
+            border-color: #dc3545 !important;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 18px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .info-section {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        .info-section h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .validation-message {
+            color: #dc3545;
+            font-size: 0.85em;
+            margin-top: 5px;
+            display: none;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .feature {
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .new-feature {
+            background: linear-gradient(135deg, #e8f5e8, #c8e6c8);
+            border: 2px solid #28a745;
+        }
+        .clickable-feature {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .clickable-feature:hover {
+            transform: scale(1.05);
+        }
+        .tax-brackets-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+        .close-modal:hover {
+            color: #000;
+        }
+        .bracket-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .bracket-table th, .bracket-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .bracket-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .bracket-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+                margin: 10px 0;
+            }
+            .header h1 {
+                font-size: 1.5em;
+            }
+            .features {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .modal-content {
+                width: 95%;
+                margin: 2% auto;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Tax Return Agent</h1>
+            <p>Automated Tax Calculation & Form Generation Prototype</p>
+        </div>
+
+        <div class="features">
+            <div class="feature new-feature">
+                <div class="feature-icon">💰</div>
+                <h4>Refund Calculator</h4>
+                <p>Calculate refunds or taxes owed</p>
+            </div>
+            <div class="feature clickable-feature" onclick="showTaxBrackets()">
+                <div class="feature-icon">📊</div>
+                <h4>2025 Tax Brackets</h4>
+                <p>Official IRS rates & deductions</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📋</div>
+                <h4>Form Generation</h4>
+                <p>Downloadable 1040 forms</p>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>📝 Quick Info</h3>
+            <p>Enter your income, deductions, and federal tax withheld to calculate your refund or taxes owed. We'll automatically use the higher of standard or itemized deductions.</p>
+        </div>
+
+        {% if error %}
+            <div class="flash-messages">
+                <div class="flash-error">{{ error }}</div>
+            </div>
+        {% endif %}
+
+        <form action="/calculate" method="post" id="taxForm">
+            <div class="form-group">
+                <label for="status">Filing Status *</label>
+                <select name="status" id="status" required>
+                    <option value="">Select your filing status</option>
+                    <option value="single">Single</option>
+                    <option value="married">Married Filing Jointly</option>
+                </select>
+                <div class="validation-message" id="status-error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="income">Annual Income ($) *</label>
+                <input type="text" 
+                       name="income" 
+                       id="income" 
+                       placeholder="e.g., 75000" 
+                       required>
+                <div class="validation-message" id="income-error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="deductions">Itemized Deductions ($) *</label>
+                <input type="text" 
+                       name="deductions" 
+                       id="deductions" 
+                       placeholder="e.g., 12000 (or 0 for standard deduction)" 
+                       required>
+                <div class="validation-message" id="deductions-error"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="withheld">Federal Tax Withheld ($) *</label>
+                <input type="text" 
+                       name="withheld" 
+                       id="withheld" 
+                       placeholder="e.g., 8500 (from W-2 Box 2)" 
+                       required>
+                <div class="validation-message" id="withheld-error"></div>
+            </div>
+            
+            <input type="submit" value="Calculate My Tax Return" class="submit-btn">
+        </form>
+    </div>
+
+    <!-- Tax Brackets Modal -->
+    <div id="taxBracketsModal" class="tax-brackets-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeTaxBrackets()">&times;</span>
+            <h2 style="color: #333; margin-bottom: 20px; text-align: center;">📊 Official 2025 Tax Brackets</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">
+                <strong>IRS IR-2024-273</strong> - Official tax brackets and standard deductions for 2025 tax year
+            </p>
+            
+            <h3 style="color: #007bff; margin-top: 30px;">Single Filers</h3>
+            <table class="bracket-table">
+                <thead>
+                    <tr>
+                        <th>Income Range</th>
+                        <th>Tax Rate</th>
+                        <th>Tax Owed on Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>$0 - $11,925</td><td>10%</td><td>10% of income</td></tr>
+                    <tr><td>$11,926 - $48,475</td><td>12%</td><td>$1,192.50 + 12% of amount over $11,925</td></tr>
+                    <tr><td>$48,476 - $103,350</td><td>22%</td><td>$5,578.50 + 22% of amount over $48,475</td></tr>
+                    <tr><td>$103,351 - $197,300</td><td>24%</td><td>$17,651.00 + 24% of amount over $103,350</td></tr>
+                    <tr><td>$197,301 - $250,525</td><td>32%</td><td>$40,199.00 + 32% of amount over $197,300</td></tr>
+                    <tr><td>$250,526 - $626,350</td><td>35%</td><td>$57,231.00 + 35% of amount over $250,525</td></tr>
+                    <tr><td>$626,351+</td><td>37%</td><td>$188,770.25 + 37% of amount over $626,350</td></tr>
+                </tbody>
+            </table>
+
+            <h3 style="color: #007bff; margin-top: 30px;">Married Filing Jointly</h3>
+            <table class="bracket-table">
+                <thead>
+                    <tr>
+                        <th>Income Range</th>
+                        <th>Tax Rate</th>
+                        <th>Tax Owed on Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>$0 - $23,850</td><td>10%</td><td>10% of income</td></tr>
+                    <tr><td>$23,851 - $96,950</td><td>12%</td><td>$2,385.00 + 12% of amount over $23,850</td></tr>
+                    <tr><td>$96,951 - $206,700</td><td>22%</td><td>$11,157.00 + 22% of amount over $96,950</td></tr>
+                    <tr><td>$206,701 - $394,600</td><td>24%</td><td>$35,302.00 + 24% of amount over $206,700</td></tr>
+                    <tr><td>$394,601 - $501,050</td><td>32%</td><td>$80,398.00 + 32% of amount over $394,600</td></tr>
+                    <tr><td>$501,051 - $751,600</td><td>35%</td><td>$114,462.00 + 35% of amount over $501,050</td></tr>
+                    <tr><td>$751,601+</td><td>37%</td><td>$202,154.50 + 37% of amount over $751,600</td></tr>
+                </tbody>
+            </table>
+
+            <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin-top: 30px; border-left: 4px solid #2196f3;">
+                <h4 style="color: #1976d2; margin-top: 0;">📋 Standard Deductions (2025)</h4>
+                <ul style="color: #1976d2; margin: 0;">
+                    <li><strong>Single:</strong> $15,000</li>
+                    <li><strong>Married Filing Jointly:</strong> $30,000</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button onclick="closeTaxBrackets()" style="padding: 12px 24px; background: linear-gradient(135deg, #007bff, #0056b3); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tax brackets modal functions
+        function showTaxBrackets() {
+            document.getElementById('taxBracketsModal').style.display = 'block';
+        }
+        
+        function closeTaxBrackets() {
+            document.getElementById('taxBracketsModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('taxBracketsModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Real-time validation
+        const form = document.getElementById('taxForm');
+        const inputs = form.querySelectorAll('input, select');
+        
+        inputs.forEach(input => {
+            input.addEventListener('blur', validateField);
+            input.addEventListener('input', clearValidation);
+        });
+        
+        function validateField(e) {
+            const field = e.target;
+            const value = field.value.trim();
+            const fieldName = field.name;
+            const errorElement = document.getElementById(fieldName + '-error');
+            
+            let errorMessage = '';
+            
+            if (fieldName === 'income') {
+                if (!value) {
+                    errorMessage = 'Income is required';
+                } else if (isNaN(value) || parseFloat(value) < 0) {
+                    errorMessage = 'Please enter a valid positive number';
+                } else if (parseFloat(value) > 10000000) {
+                    errorMessage = 'Amount seems unusually high';
+                }
+            } else if (fieldName === 'deductions') {
+                if (!value) {
+                    errorMessage = 'Required (enter 0 if none)';
+                } else if (isNaN(value) || parseFloat(value) < 0) {
+                    errorMessage = 'Please enter a valid number (0 or higher)';
+                }
+            } else if (fieldName === 'withheld') {
+                if (!value) {
+                    errorMessage = 'Required (enter 0 if none)';
+                } else if (isNaN(value) || parseFloat(value) < 0) {
+                    errorMessage = 'Please enter a valid number (0 or higher)';
+                }
+            } else if (fieldName === 'status') {
+                if (!value) {
+                    errorMessage = 'Please select filing status';
+                }
+            }
+            
+            if (errorMessage) {
+                field.classList.add('error-input');
+                errorElement.textContent = errorMessage;
+                errorElement.style.display = 'block';
+            } else {
+                field.classList.remove('error-input');
+                errorElement.style.display = 'none';
+            }
+        }
+        
+        function clearValidation(e) {
+            const field = e.target;
+            const errorElement = document.getElementById(field.name + '-error');
+            field.classList.remove('error-input');
+            errorElement.style.display = 'none';
+        }
+        
+        // Form submission validation
+        form.addEventListener('submit', function(e) {
+            let hasErrors = false;
+            
+            inputs.forEach(input => {
+                validateField({target: input});
+                if (input.classList.contains('error-input')) {
+                    hasErrors = true;
+                }
+            });
+            
+            // Cross-validation
+            const income = parseFloat(document.getElementById('income').value) || 0;
+            const deductions = parseFloat(document.getElementById('deductions').value) || 0;
+            const withheld = parseFloat(document.getElementById('withheld').value) || 0;
+            const deductionsError = document.getElementById('deductions-error');
+            const withheldError = document.getElementById('withheld-error');
+            
+            if (income > 0 && deductions > income) {
+                document.getElementById('deductions').classList.add('error-input');
+                deductionsError.textContent = 'Cannot exceed income';
+                deductionsError.style.display = 'block';
+                hasErrors = true;
+            }
+
+            if (income > 0 && withheld > income * 0.5) {
+                document.getElementById('withheld').classList.add('error-input');
+                withheldError.textContent = 'Amount seems unusually high';
+                withheldError.style.display = 'block';
+                hasErrors = true;
+            }
+            
+            if (hasErrors) {
+                e.preventDefault();
+                alert('Please correct the errors in the form before submitting.');
+            }
+        });
+    </script>
+</body>
+</html>
