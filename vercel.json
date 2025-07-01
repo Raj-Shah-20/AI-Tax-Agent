@@ -8,11 +8,5 @@
   ],
   "env": {
     "FLASK_ENV": "production"
-  },
-  "functions": {
-    "index.py": {
-      "runtime": "python3.9",
-      "maxDuration": 30
-    }
   }
 } 
